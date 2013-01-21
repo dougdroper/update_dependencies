@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+$:.unshift File.join(File.dirname(__FILE__), *%w[..])
+
+require 'rubygems'
+require 'bundler'
+require 'update_dependencies'
+
+UpdateDependencies.new(ARGV[0]).run_dependencies
