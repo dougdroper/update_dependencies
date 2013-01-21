@@ -7,10 +7,10 @@ module Bundler
 end
 
 class UpdateDependencies
-  attr_reader :dependency_gemfile
-  def initialize(path_to_gemfile)
+  attr_reader :dependency_gemfile, :gemfile
+  def initialize(path_to_gemfile=nil)
     raise "Needs a location of a dependent Gemfile" unless path_to_gemfile
-    puts "source 'http://rubygems.org' \n\n"
+    @gemfile = "source 'http://rubygems.org' \n\n"
     @dependency_gemfile = Bundler::Dsl.new.eval_gemfile(path_to_gemfile)
   end
 
@@ -23,6 +23,7 @@ class UpdateDependencies
         end
       end
     end
+    gemfile
   end
 
   private
@@ -32,13 +33,13 @@ class UpdateDependencies
   end
 
   def ref(source)
-    source.ref == "master" ? "" : ", ref => '" + source.ref + "'"
+    source.ref == "master" ? "" : ", :ref => '" + source.ref + "'"
   end
 
   def in_group(group)
-    puts  "\ngroup :" + group + " do" unless group == "default"
+    gemfile << "\ngroup :" + group + " do" unless group == "default"
     yield
-    puts "end" unless group == "default"
+    gemfile << "end" unless group == "default"
   end
 
   def locked_gemfile
@@ -47,13 +48,13 @@ class UpdateDependencies
 
   def print_dependent_sources(gem_source, group)
     locked_gemfile.sources.select {|s| gem_source.name == s.name}.
-    map {|s| puts spaces(group) + "gem '" + s.name + "'" + required(gem_source) + ", :git => '" + s.uri + "'" + ref(s)}
+    map {|s| gemfile << spaces(group) + "gem '" + s.name + "'" + required(gem_source) + ", :git => '" + s.uri + "'" + ref(s)}
   end
 
   def print_version_sources(gem_source, group)
     locked_gemfile.specs.reject {|s| locked_gemfile.sources.map(&:name).include?(s.name)}.
     select {|s| s.name == gem_source.name}.
-    map {|s| puts spaces(group) + "gem '" + s.name + "', '" + s.version.version + "'" + required(gem_source)}
+    map {|s| gemfile << spaces(group) + "gem '" + s.name + "', '" + s.version.version + "'" + required(gem_source)}
   end
 
   def required(source)
