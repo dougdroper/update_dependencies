@@ -47,12 +47,17 @@ class UpdateDependencies
 
   def print_dependent_sources(gem_source, group)
     locked_gemfile.sources.select {|s| gem_source.name == s.name}.
-    map {|s| puts spaces(group) + "gem '" + s.name + "', :git => '" + s.uri + "'" + ref(s)}
+    map {|s| puts spaces(group) + "gem '" + s.name + "'" + required(gem_source) + ", :git => '" + s.uri + "'" + ref(s)}
   end
 
   def print_version_sources(gem_source, group)
     locked_gemfile.specs.reject {|s| locked_gemfile.sources.map(&:name).include?(s.name)}.
     select {|s| s.name == gem_source.name}.
-    map {|s| puts spaces(group) + "gem '" + s.name + "', '" + s.version.version + "'"}
+    map {|s| puts spaces(group) + "gem '" + s.name + "', '" + s.version.version + "'" + required(gem_source)}
+  end
+
+  def required(source)
+    return "" if source.autorequire.nil?
+    source.autorequire.first.nil? ? ", :require => false" : ", :require => '#{source.autorequire.first}'"
   end
 end
