@@ -6,4 +6,4 @@ require 'rubygems'
 require 'bundler'
 require 'update_dependencies'
 
-UpdateDependencies.new(ARGV[0]).run_dependencies
+puts UpdateDependencies.new(ARGV[0]).run_dependencies

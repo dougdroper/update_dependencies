@@ -37,24 +37,28 @@ class UpdateDependencies
   end
 
   def in_group(group)
-    gemfile << "\ngroup :" + group + " do" unless group == "default"
+    gemfile << "\ngroup :" + group + " do\n" unless group == "default"
     yield
-    gemfile << "end" unless group == "default"
+    gemfile << "end\n\n" unless group == "default"
   end
 
   def locked_gemfile
     @locked ||= Bundler::LockfileParser.new(Bundler.read_file("Gemfile.lock"))
   end
 
+  def source_version(source)
+    source.version ? ", '" + source.version + "'" : ""
+  end
+
   def print_dependent_sources(gem_source, group)
     locked_gemfile.sources.select {|s| gem_source.name == s.name}.
-    map {|s| gemfile << spaces(group) + "gem '" + s.name + "'" + required(gem_source) + ", :git => '" + s.uri + "'" + ref(s)}
+    map {|s| gemfile << spaces(group) + "gem '" + s.name + "'" + source_version(s) + required(gem_source) + ", :git => '" + s.uri + "'" + ref(s) + "\n"}
   end
 
   def print_version_sources(gem_source, group)
     locked_gemfile.specs.reject {|s| locked_gemfile.sources.map(&:name).include?(s.name)}.
     select {|s| s.name == gem_source.name}.
-    map {|s| gemfile << spaces(group) + "gem '" + s.name + "', '" + s.version.version + "'" + required(gem_source)}
+    map {|s| gemfile << spaces(group) + "gem '" + s.name + "', '" + s.version.version + "'" + required(gem_source) + "\n"}
   end
 
   def required(source)
